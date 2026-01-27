@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日経225実戦解析クイズ</title>
+    <style>
+        :root {
+            --bg: #0b0e11;
+            --card: #151921;
+            --text: #d1d4dc;
+            --accent: #2962ff;
+            --success: #089981;
+            --error: #f23645;
+            --border: #2a2e39;
+        }
+        body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .container { max-width: 850px; width: 100%; }
+        .app-card { background: var(--card); border-radius: 16px; padding: 30px; border: 1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        
+        /* チャート表示エリア */
+        .chart-frame { width: 100%; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 25px; background: #000; position: relative; }
+        #chart-img { width: 100%; display: block; min-height: 200px; }
+        
+        /* エラーメッセージ */
+        #error-msg { display: none; padding: 40px; text-align: center; color: var(--error); font-weight: bold; }
+
+        .question-header { border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 25px; }
+        .question-text { font-size: 1.15em; font-weight: bold; line-height: 1.6; color: #fff; margin-bottom: 20px; }
+        
+        .options-grid { display: grid; gap: 12px; }
+        .option-btn { background: #1e222d; border: 1px solid var(--border); color: var(--text); padding: 18px; border-radius: 10px; cursor: pointer; text-align: left; font-size: 1em; transition: 0.2s; }
+        .option-btn:hover:not(:disabled) { border-color: var(--accent); background: #2a2e39; }
+        .option-btn:disabled { cursor: default; }
+
+        .explanation { display: none; margin-top: 25px; padding: 25px; background: rgba(41, 98, 255, 0.1); border-left: 5px solid var(--accent); border-radius: 6px; animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .prob-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: rgba(0,0,0,0.2); }
+        .prob-table th, .prob-table td { padding: 12px; border: 1px solid var(--border); text-align: center; font-size: 0.9em; }
+        .prob-table th { background: rgba(41, 98, 255, 0.1); color: var(--accent); }
+
+        .correct { background: rgba(8, 153, 129, 0.2) !important; border-color: var(--success) !important; color: var(--success) !important; font-weight: bold; }
+        .wrong { background: rgba(242, 54, 69, 0.2) !important; border-color: var(--error) !important; color: var(--error) !important; }
+        .highlight { color: #e1ff00; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="app-card">
+        <div class="question-header">
+            <h2 style="margin:0; color:var(--accent);">実戦テクニカル分析クイズ</h2>
+            <p style="color:var(--text); margin:5px 0 0 0; font-size: 0.9em;">提供された高解像度チャートを読み解け</p>
+        </div>
+
+        <div class="chart-frame">
+            <img id="chart-img" src="chart.png" onerror="handleImgError()">
+            <div id="error-msg">【システムエラー】画像ファイル（chart.png）が見つかりません。</div>
+        </div>
+
+        <div class="question-text">
+            表示されたチャートの右端、点線の<span class="highlight">「ネックライン」を下抜けた後のリバウンド</span>局面です。テクニカルの定石に基づき、次に取るべき最も合理的な判断はどれですか？
+        </div>
+
+        <div class="options-grid" id="options">
+            <button class="option-btn" onclick="check(0)">
+                <span style="color:var(--accent); font-weight:bold;">A.</span> 支持線が抵抗線に変わる「サポレジ転換」を確認し、反落を狙って売りを仕掛ける。
+            </button>
+            <button class="option-btn" onclick="check(1)">
+                <span style="color:var(--accent); font-weight:bold;">B.</span> 急落は一時的な行き過ぎ（オーバーシュート）と見て、直近高値更新を狙い買い向かう。
+            </button>
+            <button class="option-btn" onclick="check(2)">
+                <span style="color:var(--accent); font-weight:bold;">C.</span> 完全にトレンドが消滅したため、移動平均線が収束するまで数週間は静観を貫く。
+            </button>
+            <button class="option-btn" onclick="check(3)">
+                <span style="color:var(--accent); font-weight:bold;">D.</span> 出来高が減っているためこのラインは無視し、ボリンジャーバンドの±3σ到達まで待つ。
+            </button>
+        </div>
+
+        <div class="explanation" id="result">
+            <h3 style="margin-top:0; color:var(--accent);">Geminiの分析レポート</h3>
+            実際のチャートが示す通り、価格は $39,000$ 円付近の重要ラインを割り込みました。現在は「本当に上がれないのか」を市場が確認する<span class="highlight">リターンムーブ</span>の局面です。<br><br>
+            かつての「支え（サポート）」は、今や「壁（レジスタンス）」へと役割を変えています。ここを明確に超えられない限り、下落の第2波を警戒するのが中級レベルの鉄則です。
+
+            <table class="prob-table">
+                <tr><th>シナリオ</th><th>Geminiの予測確率</th></tr>
+                <tr><td><strong>戻り売り（定石）</strong></td><td><span class="highlight">65%</span></td></tr>
+                <tr><td>もみ合い（レンジ）</td><td>20%</td></tr>
+                <tr><td>強気回帰（ダマシ）</td><td>10%</td></tr>
+                <tr><td>予測不能な急騰</td><td>5%</td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 画像読み込みエラー時の処理
+    function handleImgError() {
+        document.getElementById('chart-img').style.display = 'none';
+        document.getElementById('error-msg').style.display = 'block';
+    }
+
+    function check(idx) {
+        const btns = document.getElementById('options').children;
+        const result = document.getElementById('result');
+        for(let i=0; i<btns.length; i++) {
+            btns[i].disabled = true;
+            if(i === 0) btns[i].classList.add('correct');
+            if(i === idx && i !== 0) btns[i].classList.add('wrong');
+        }
+        result.style.display = 'block';
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
