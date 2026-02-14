@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超ロング！わくわくあみだくじ占い</title>
+    <link href="https://fonts.googleapis.com/css2?family=Yomogi&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #fff9f0;
+            --main-color: #ff9a9e;
+            --accent-color: #fad0c4;
+            --text-color: #555;
+            --line-color: #888;
+            --highlight-color: #ff6b6b;
+            --font-family: 'Yomogi', cursive, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#ffe4e1 15%, transparent 16%), radial-gradient(#e0ffff 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            font-family: var(--font-family);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-size: 2rem;
+            color: #ff6b6b;
+            text-shadow: 2px 2px 0px #fff;
+            position: sticky;
+            top: 10px;
+            z-index: 10;
+        }
+
+        .instruction {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin: 20px;
+            max-width: 900px;
+            width: 95%;
+            box-sizing: border-box;
+            border: 5px solid var(--accent-color);
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            text-align: center;
+            /* 高いキャンバスをスクロールで見せる */
+            overflow-x: auto;
+        }
+
+        canvas {
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .controls {
+            margin-top: 20px;
+            padding-bottom: 40px;
+            text-align: center;
+        }
+
+        button.reset-btn {
+            background: #ff9a9e;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: var(--font-family);
+            box-shadow: 0 5px 0 #e06c75;
+            transition: all 0.1s;
+        }
+
+        button.reset-btn:active {
+            box-shadow: 0 2px 0 #e06c75;
+            transform: translateY(3px);
+        }
+
+        /* 結果ポップアップ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 85%;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 8px solid #ff9a9e;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.3); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .result-emoji { font-size: 5rem; display: block; margin-bottom: 15px; }
+        .result-title { font-size: 3rem; font-weight: bold; color: #ff6b6b; margin: 15px 0; }
+        .result-desc { font-size: 1.4rem; margin-bottom: 25px; line-height: 1.6; }
+
+        .close-btn {
+            background: #4ecdc4;
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 1.2rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-family: var(--font-family);
+            box-shadow: 0 4px 0 #3b9e96;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>✨ どきどき！超ロングあみだ ✨</h1>
+    <div class="instruction">すきな 動物さんを えらんでね！</div>
+
+    <div class="container">
+        <div class="canvas-wrapper">
+            <canvas id="amidaCanvas"></canvas>
+        </div>
+        <div class="controls">
+            <button id="resetBtn" class="reset-btn">もう一回あそぶ！</button>
+        </div>
+    </div>
+
+    <div id="resultModal" class="modal-overlay">
+        <div class="modal">
+            <span id="modalEmoji" class="result-emoji"></span>
+            <div id="modalTitle" class="result-title"></div>
+            <div id="modalDesc" class="result-desc"></div>
+            <button id="modalCloseBtn" class="close-btn">とじる</button>
+        </div>
+    </div>
+
+    <script>
+        class AmidakujiGame {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                
+                // 設定値：高さを大幅にアップ
+                this.width = 800;
+                this.height = 2000; // 約3倍以上の長さに変更
+                this.cols = 10;
+                this.steps = 30;    // 横棒の数も増やして複雑化
+                this.padding = { top: 100, bottom: 150, left: 60, right: 60 };
+                
+                this.lineColor = '#bbbbbb';
+                this.lineWidth = 4;
+                this.traceColor = '#ff6b6b';
+                this.traceWidth = 6;
+                
+                this.startIcons = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯"];
+                this.resultTypes = [
+                    { type: '大吉', count: 2, emoji: '🌟', msg: 'すごい！今日は最高の一日になりそう！<br>ラッキーアイテム：星のシール' },
+                    { type: '中吉', count: 3, emoji: '🌸', msg: 'やったね！いいことがあるかも？<br>ラッキーカラー：ピンク' },
+                    { type: '吉',   count: 2, emoji: '🍀', msg: 'ふつうが一番！のんびりすごそう。<br>ラッキーおやつ：クッキー' },
+                    { type: '凶',   count: 2, emoji: '☁️', msg: 'ちょっと注意。忘れ物にきをつけて！<br>ラッキーアクション：深呼吸' },
+                    { type: '大凶', count: 1, emoji: '☔', msg: 'どんまい！明日はきっといい日になるよ。<br>ラッキーアイテム：あたたかいココア' }
+                ];
+                
+                this.init();
+                window.addEventListener('resize', () => this.fitToScreen());
+            }
+
+            init() {
+                this.isAnimating = false;
+                this.finishedColumns = [];
+                this.selectedColumn = -1;
+                this.currentPath = null;
+                this.generateResults();
+                this.generateLadders();
+                this.fitToScreen();
+                this.draw();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            generateResults() {
+                let pool = [];
+                this.resultTypes.forEach(r => {
+                    for(let i=0; i<r.count; i++) pool.push(r);
+                });
+                for (let i = pool.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [pool[i], pool[j]] = [pool[j], pool[i]];
+                }
+                this.results = pool;
+            }
+
+            generateLadders() {
+                this.ladders = [];
+                for (let i = 0; i < this.steps; i++) {
+                    let row = [];
+                    for (let j = 0; j < this.cols - 1; j++) {
+                        let hasLeft = (j > 0 && row[j-1] === 1);
+                        if (!hasLeft && Math.random() > 0.5) {
+                            row.push(1);
+                        } else {
+                            row.push(0);
+                        }
+                    }
+                    this.ladders.push(row);
+                }
+            }
+
+            fitToScreen() {
+                const wrapper = this.canvas.parentElement;
+                const displayWidth = Math.min(wrapper.clientWidth, 800);
+                const scale = window.devicePixelRatio || 1;
+                
+                // CSSの見た目サイズ
+                this.canvas.style.width = displayWidth + 'px';
+                this.canvas.style.height = (this.height * (displayWidth / this.width)) + 'px';
+                
+                // Canvas内部の解像度
+                this.canvas.width = displayWidth * scale;
+                this.canvas.height = (this.height * (displayWidth / this.width)) * scale;
+                
+                this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+                this.ctx.scale(scale * (displayWidth / this.width), scale * (displayWidth / this.width));
+                this.draw();
+            }
+
+            getColX(colIndex) {
+                const step = (this.width - this.padding.left - this.padding.right) / (this.cols - 1);
+                return this.padding.left + (step * colIndex);
+            }
+
+            getRowY(rowIndex) {
+                const step = (this.height - this.padding.top - this.padding.bottom) / (this.steps + 1);
+                return this.padding.top + (step * (rowIndex + 1));
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                
+                // 1. 縦線
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = this.lineColor;
+                this.ctx.lineWidth = this.lineWidth;
+                this.ctx.lineCap = 'round';
+                for (let i = 0; i < this.cols; i++) {
+                    const x = this.getColX(i);
+                    this.ctx.moveTo(x, this.padding.top);
+                    this.ctx.lineTo(x, this.height - this.padding.bottom);
+                }
+                this.ctx.stroke();
+
+                // 2. 横棒
+                this.ctx.beginPath();
+                for (let r = 0; r < this.ladders.length; r++) {
+                    for (let c = 0; c < this.cols - 1; c++) {
+                        if (this.ladders[r][c] === 1) {
+                            this.ctx.moveTo(this.getColX(c), this.getRowY(r));
+                            this.ctx.lineTo(this.getColX(c+1), this.getRowY(r));
+                        }
+                    }
+                }
+                this.ctx.stroke();
+
+                // 3. アイコンと結果
+                this.ctx.textAlign = "center";
+                this.ctx.textBaseline = "middle";
+                for (let i = 0; i < this.cols; i++) {
+                    const x = this.getColX(i);
+                    // スタート
+                    this.ctx.globalAlpha = this.finishedColumns.includes(i) ? 0.3 : 1.0;
+                    this.ctx.font = (i === this.selectedColumn) ? "50px sans-serif" : "35px sans-serif";
+                    this.ctx.fillText(this.startIcons[i], x, this.padding.top - 40);
+                    
+                    // ゴール
+                    let isRevealed = this.finishedColumns.some(sc => this.tracePathLogic(sc).endCol === i);
+                    this.ctx.globalAlpha = 1.0;
+                    if (isRevealed) {
+                        this.ctx.font = "bold 24px 'Yomogi'";
+                        this.ctx.fillStyle = '#ff6b6b';
+                        this.ctx.fillText(this.results[i].type, x, this.height - this.padding.bottom + 40);
+                    } else {
+                        this.ctx.font = "30px sans-serif";
+                        this.ctx.fillStyle = '#ddd';
+                        this.ctx.fillText("🎁", x, this.height - this.padding.bottom + 40);
+                    }
+                }
+
+                if (this.isAnimating && this.currentPath) this.drawAnimation();
+            }
+
+            tracePathLogic(startCol) {
+                let path = [{x: this.getColX(startCol), y: this.padding.top}];
+                let currentCol = startCol;
+                for (let r = 0; r < this.ladders.length; r++) {
+                    const y = this.getRowY(r);
+                    path.push({x: this.getColX(currentCol), y: y});
+                    if (currentCol > 0 && this.ladders[r][currentCol - 1] === 1) {
+                        currentCol--;
+                    } else if (currentCol < this.cols - 1 && this.ladders[r][currentCol] === 1) {
+                        currentCol++;
+                    }
+                    path.push({x: this.getColX(currentCol), y: y});
+                }
+                path.push({x: this.getColX(currentCol), y: this.height - this.padding.bottom});
+                return { points: path, endCol: currentCol };
+            }
+
+            startAnimation(colIndex) {
+                this.isAnimating = true;
+                this.selectedColumn = colIndex;
+                this.finishedColumns.push(colIndex);
+                const result = this.tracePathLogic(colIndex);
+                this.currentPath = result.points;
+                this.currentEndCol = result.endCol;
+                
+                this.totalPathLength = 0;
+                for(let i=0; i<this.currentPath.length-1; i++) {
+                    const p1 = this.currentPath[i], p2 = this.currentPath[i+1];
+                    this.totalPathLength += Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+                }
+
+                this.startTime = null;
+                this.animationDuration = 6000; // 6秒かけてじっくり進む
+                requestAnimationFrame((t) => this.animateLoop(t));
+            }
+
+            animateLoop(timestamp) {
+                if (!this.startTime) this.startTime = timestamp;
+                let progress = (timestamp - this.startTime) / this.animationDuration;
+                if (progress > 1) progress = 1;
+                this.animationProgress = progress;
+                
+                this.draw();
+
+                if (progress < 1) {
+                    requestAnimationFrame((t) => this.animateLoop(t));
+                } else {
+                    this.isAnimating = false;
+                    setTimeout(() => this.showResultPopup(), 500);
+                }
+            }
+
+            drawAnimation() {
+                const targetDist = this.totalPathLength * this.animationProgress;
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = this.traceColor;
+                this.ctx.lineWidth = this.traceWidth;
+                this.ctx.lineCap = 'round';
+                this.ctx.lineJoin = 'round';
+
+                let distSum = 0;
+                let headX = this.currentPath[0].x, headY = this.currentPath[0].y;
+                this.ctx.moveTo(headX, headY);
+
+                for (let i = 0; i < this.currentPath.length - 1; i++) {
+                    const p1 = this.currentPath[i], p2 = this.currentPath[i+1];
+                    const segDist = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+                    if (distSum + segDist <= targetDist) {
+                        this.ctx.lineTo(p2.x, p2.y);
+                        distSum += segDist;
+                        headX = p2.x; headY = p2.y;
+                    } else {
+                        const ratio = (targetDist - distSum) / segDist;
+                        headX = p1.x + (p2.x - p1.x) * ratio;
+                        headY = p1.y + (p2.y - p1.y) * ratio;
+                        this.ctx.lineTo(headX, headY);
+                        break;
+                    }
+                }
+                this.ctx.stroke();
+                
+                // キャラクターアイコンを描画
+                this.ctx.font = "40px sans-serif";
+                this.ctx.fillText(this.startIcons[this.selectedColumn], headX, headY);
+
+                // 自動スクロール処理：キャラクターが画面中央にくるようにする
+                const canvasRect = this.canvas.getBoundingClientRect();
+                const scrollY = window.pageYOffset + canvasRect.top + (headY * (canvasRect.width / this.width)) - (window.innerHeight / 2);
+                window.scrollTo(0, scrollY);
+            }
+
+            showResultPopup() {
+                const resultData = this.results[this.currentEndCol];
+                document.getElementById('modalEmoji').textContent = resultData.emoji;
+                document.getElementById('modalTitle').textContent = resultData.type;
+                document.getElementById('modalDesc').innerHTML = resultData.msg;
+                document.getElementById('resultModal').style.display = 'flex';
+            }
+        }
+
+        window.onload = () => {
+            const game = new AmidakujiGame('amidaCanvas');
+            document.getElementById('amidaCanvas').addEventListener('click', (e) => {
+                if (game.isAnimating) return;
+                const rect = game.canvas.getBoundingClientRect();
+                const x = (e.clientX - rect.left) * (game.width / rect.width);
+                const y = (e.clientY - rect.top) * (game.height / rect.height);
+                if (y < game.padding.top + 50) {
+                    let minDist = 50, target = -1;
+                    for (let i = 0; i < game.cols; i++) {
+                        let d = Math.abs(x - game.getColX(i));
+                        if (d < minDist) { minDist = d; target = i; }
+                    }
+                    if (target !== -1 && !game.finishedColumns.includes(target)) game.startAnimation(target);
+                }
+            });
+            document.getElementById('resetBtn').addEventListener('click', () => game.init());
+            document.getElementById('modalCloseBtn').addEventListener('click', () => {
+                document.getElementById('resultModal').style.display = 'none';
+                game.draw();
+            });
+        };
+    </script>
+</body>
+</html>
