@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>つるかめ算 4択練習問題</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f4f7f6;
+        }
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+            margin-bottom: 35px;
+        }
+        .problem-card {
+            margin-bottom: 35px;
+            padding: 25px;
+            border: 1px solid #e1e8ed;
+            border-left: 6px solid #3498db;
+            border-radius: 4px;
+            background-color: #ffffff;
+        }
+        .problem-number {
+            font-weight: bold;
+            color: #3498db;
+            font-size: 1.1em;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .question-text {
+            font-size: 1.1em;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .option {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .option:hover {
+            background-color: #f0f7ff;
+            border-color: #3498db;
+        }
+        .option-label {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+            background-color: #3498db;
+            color: white;
+            border-radius: 50%;
+            margin-right: 12px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .footer-note {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 0.9em;
+            color: #95a5a6;
+            text-align: center;
+        }
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+        @media print {
+            body { background-color: #fff; margin: 0; }
+            .container { box-shadow: none; width: 100%; }
+            .option:hover { background-color: transparent; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>つるかめ算 4択練習問題（5問）</h1>
+
+    <div class="problem-card">
+        <span class="problem-number">問題 1</span>
+        <p class="question-text">50円切手と80円切手を合わせて20枚買い、代金の合計は1360円でした。50円切手は何枚買いましたか。</p>
+        <div class="options-grid">
+            <div class="option"><span class="option-label">1</span> 6枚</div>
+            <div class="option"><span class="option-label">2</span> 8枚</div>
+            <div class="option"><span class="option-label">3</span> 10枚</div>
+            <div class="option"><span class="option-label">4</span> 12枚</div>
+        </div>
+    </div>
+
+    <div class="problem-card">
+        <span class="problem-number">問題 2</span>
+        <p class="question-text">1個150円のりんごと、1個100円のみかんを合わせて12個買い、代金の合計は1550円でした。りんごは何個買いましたか。</p>
+        <div class="options-grid">
+            <div class="option"><span class="option-label">1</span> 5個</div>
+            <div class="option"><span class="option-label">2</span> 6個</div>
+            <div class="option"><span class="option-label">3</span> 7個</div>
+            <div class="option"><span class="option-label">4</span> 8個</div>
+        </div>
+    </div>
+
+    <div class="problem-card">
+        <span class="problem-number">問題 3</span>
+        <p class="question-text">つるとかめが合わせて10匹います。足の数の合計が32本のとき、かめは何匹いますか。</p>
+        <div class="options-grid">
+            <div class="option"><span class="option-label">1</span> 4匹</div>
+            <div class="option"><span class="option-label">2</span> 5匹</div>
+            <div class="option"><span class="option-label">3</span> 6匹</div>
+            <div class="option"><span class="option-label">4</span> 7匹</div>
+        </div>
+    </div>
+
+    <div class="problem-card">
+        <span class="problem-number">問題 4</span>
+        <p class="question-text">10円硬貨と100円硬貨が合わせて15枚あり、合計金額は870円です。10円硬貨は何枚ありますか。</p>
+        <div class="options-grid">
+            <div class="option"><span class="option-label">1</span> 5枚</div>
+            <div class="option"><span class="option-label">2</span> 7枚</div>
+            <div class="option"><span class="option-label">3</span> 9枚</div>
+            <div class="option"><span class="option-label">4</span> 11枚</div>
+        </div>
+    </div>
+
+    <div class="problem-card">
+        <span class="problem-number">問題 5</span>
+        <p class="question-text">1本120円のペンと、1冊250円のノートを合わせて8点買い、代金の合計は1480円でした。ペンは何本買いましたか。</p>
+        <div class="options-grid">
+            <div class="option"><span class="option-label">1</span> 2本</div>
+            <div class="option"><span class="option-label">2</span> 3本</div>
+            <div class="option"><span class="option-label">3</span> 4本</div>
+            <div class="option"><span class="option-label">4</span> 5本</div>
+        </div>
+    </div>
+
+    <div class="footer-note">
+        解答：問題1[2] / 問題2[3] / 問題3[3] / 問題4[2] / 問題5[3]
+    </div>
+</div>
+
+</body>
+</html>
